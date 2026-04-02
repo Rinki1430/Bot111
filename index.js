@@ -1,64 +1,56 @@
-const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
-const Canvas = require('canvas');
+const { Client, GatewayIntentBits, EmbedBuilder } = require('discord.js');
+const express = require('express');
+
+const app = express();
+app.get('/', (req, res) => {
+res.send('Bot is running!');
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+console.log(🌐 Web server running on port ${PORT});
+});
 
 const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers
-  ]
+intents: [
+GatewayIntentBits.Guilds,
+GatewayIntentBits.GuildMembers,
+GatewayIntentBits.GuildMessages,
+GatewayIntentBits.MessageContent
+]
+});
+
+client.on('ready', () => {
+console.log(✅ Bot Online: ${client.user.tag});
 });
 
 const WELCOME_CHANNEL_ID = "1489323909860950219";
 
-client.on('ready', () => {
-  console.log(`✅ Bot Ready: ${client.user.tag}`);
+// 🎯 Welcome Function (reuse karne ke liye)
+function sendWelcome(member, channel) {
+const embed = new EmbedBuilder()
+.setColor("#00ffcc")
+.setTitle("✨ Welcome to DARK EAGLE 🦅 ✨")
+.setDescription(👋 Hey <@${member.id}>\n\n🔥 Welcome to ${member.guild.name}!\n💎 Enjoy your stay!)
+.setThumbnail(member.user.displayAvatarURL({ dynamic: true }))
+.setFooter({ text: Member #${member.guild.memberCount} })
+.setTimestamp();
+
+channel.send({ embeds: [embed] });
+}
+
+// 👇 Real join event
+client.on('guildMemberAdd', member => {
+const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
+if (!channel) return;
+sendWelcome(member, channel);
 });
 
-client.on('guildMemberAdd', async (member) => {
-
-  const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-  if (!channel) return;
-
-  // 🎨 Canvas setup
-  const canvas = Canvas.createCanvas(1024, 500);
-  const ctx = canvas.getContext('2d');
-
-  // 🖼️ Background load (golden)
-  const background = await Canvas.loadImage('https://i.imgur.com/6Iej2c3.png'); // change if needed
-  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-  // 👤 Avatar load
-  const avatar = await Canvas.loadImage(
-    member.user.displayAvatarURL({ extension: 'png', size: 256 })
-  );
-
-  // 👑 Avatar box (left side)
-  ctx.drawImage(avatar, 50, 150, 200, 200);
-
-  // ✨ Text Style
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 50px Sans';
-  ctx.fillText('WELCOME', 300, 200);
-
-  ctx.fillStyle = '#ff00cc';
-  ctx.font = 'bold 40px Sans';
-  ctx.fillText(member.user.username, 300, 260);
-
-  ctx.fillStyle = '#00ffcc';
-  ctx.font = 'bold 30px Sans';
-  ctx.fillText(`TO ${member.guild.name}`, 300, 320);
-
-  // 📦 Convert to attachment
-  const attachment = new AttachmentBuilder(canvas.toBuffer(), {
-    name: 'welcome.png'
-  });
-
-  // 🚀 Send
-  channel.send({
-    content: `👑 Welcome <@${member.id}>`,
-    files: [attachment]
-  });
-
+// 👇 TEST COMMAND (!welcome)
+client.on('messageCreate', message => {
+if (message.content === '!welcome') {
+sendWelcome(message.member, message.channel);
+}
 });
 
 client.login(process.env.TOKEN);
