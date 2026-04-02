@@ -15,104 +15,137 @@ const client = new Client({
   ]
 });
 
-// 🔧 CONFIG
+// 🔧 CONFIGURATION
 const WELCOME_CHANNEL_ID = "1489323909860950219";
-const AUTO_ROLE_ID = "YOUR_ROLE_ID_HERE"; 
+const AUTO_ROLE_ID = "YOUR_ROLE_ID_HERE"; // Yahan Role ID daalein
 const BANNER_URL = "https://cdn.discordapp.com/attachments/1489323909860950219/1489340921496473762/golden-radial-sunburst-background-animation-warm-abstract-sunshine-burst-motion-graphic-free-video.jpg?ex=69d01052&is=69cebed2&hm=0f9b49211ae735968fb000ee559b035a13515703b98159a97b1a82812ff1a484&";
 
+// 🎨 ADVANCED ROYAL CANVAS FUNCTION
 async function createWelcomeImage(member) {
-  try {
-    const canvas = createCanvas(1024, 500);
-    const ctx = canvas.getContext('2d');
+  const canvas = createCanvas(1024, 500);
+  const ctx = canvas.getContext('2d');
 
-    const background = await loadImage(BANNER_URL).catch(err => {
-        console.error("Banner Image Load Error:", err);
-        throw new Error("Could not load banner image");
-    });
-    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+  // 1. Background Image Load karein
+  const background = await loadImage(BANNER_URL);
+  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-    const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 512 }));
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(512, 160, 100, 0, Math.PI * 2, true);
-    ctx.lineWidth = 12;
-    ctx.strokeStyle = '#D4AF37';
-    ctx.stroke();
-    ctx.clip();
-    ctx.drawImage(avatar, 412, 60, 200, 200);
-    ctx.restore();
+  // 2. Add a Subtle Vignette (Sides thoda dark taki focus center mein rahe)
+  const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
+  vignette.addColorStop(0, 'rgba(0,0,0,0)');
+  vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.textAlign = "center";
-    const goldGradient = ctx.createLinearGradient(0, 300, 0, 350);
-    goldGradient.addColorStop(0, '#D4AF37');
-    goldGradient.addColorStop(1, '#8B4513');
+  // 3. User Avatar with Golden Glow & Border
+  const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 512 }));
+  
+  // Avatar Glow
+  ctx.shadowColor = '#FFD700';
+  ctx.shadowBlur = 20;
+  
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(512, 160, 100, 0, Math.PI * 2, true); // Avatar circle
+  ctx.closePath();
+  ctx.lineWidth = 10;
+  ctx.strokeStyle = '#D4AF37'; // Golden Border
+  ctx.stroke();
+  ctx.clip();
+  ctx.drawImage(avatar, 412, 60, 200, 200);
+  ctx.restore();
 
-    ctx.font = 'bold 70px sans-serif';
-    ctx.fillStyle = goldGradient;
-    ctx.fillText("WELCOME", 512, 340);
+  // Reset Shadow for Text
+  ctx.shadowBlur = 5;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
 
-    ctx.font = 'bold 85px sans-serif';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(member.user.username.toUpperCase(), 512, 420);
+  // 4. Text Styling
+  ctx.textAlign = "center";
 
-    ctx.font = '30px sans-serif';
-    ctx.fillStyle = '#FFD700';
-    ctx.fillText(`MEMBER #${member.guild.memberCount}`, 512, 470);
+  // Create Golden Gradient for "WELCOME"
+  const goldGradient = ctx.createLinearGradient(0, 300, 0, 350);
+  goldGradient.addColorStop(0, '#8B4513'); // Dark Gold/Bronze
+  goldGradient.addColorStop(0.5, '#FFD700'); // Shiny Gold
+  goldGradient.addColorStop(1, '#8B4513');
 
-    return canvas.toBuffer();
-  } catch (error) {
-    console.error("Canvas Creation Error:", error);
-  }
+  // "WELCOME" Text
+  ctx.font = 'bold 70px sans-serif';
+  ctx.fillStyle = goldGradient;
+  ctx.fillText("WELCOME", 512, 340);
+
+  // Username Text (With White & Gold Stroke)
+  ctx.font = 'bold 90px sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#000000';
+  ctx.strokeText(member.user.username.toUpperCase(), 512, 420);
+  ctx.fillText(member.user.username.toUpperCase(), 512, 420);
+
+  // Member Count Text
+  ctx.font = '35px sans-serif';
+  ctx.fillStyle = '#FFD700';
+  ctx.fillText(`MEMBER #${member.guild.memberCount}`, 512, 470);
+
+  // Final Golden Frame
+  ctx.strokeStyle = '#D4AF37';
+  ctx.lineWidth = 15;
+  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+  return canvas.toBuffer();
 }
 
+// 🎯 SEND FUNCTION WITH REQUESTED FORMAT
 async function sendWelcome(member, channel) {
   try {
-    console.log(`Processing welcome for: ${member.user.tag}`);
     const buffer = await createWelcomeImage(member);
-    if(!buffer) return console.log("Buffer is empty!");
+    const attachment = new AttachmentBuilder(buffer, { name: 'welcome-royal.png' });
 
-    const attachment = new AttachmentBuilder(buffer, { name: 'welcome.png' });
-    const serverName = member.guild.name.toUpperCase();
-    
-    // Wider ANSI Header/Footer
-    const royalHeader = "```ansi\n" + `\u001b[1;33m💢====================================💢\n      WELCOME TO ${serverName}\n💢====================================💢` + "\n```";
-    const royalFooter = "```ansi\n" + `\u001b[1;33m💢====================================💢\n           WELCOME BACK FAMILY\n💢====================================💢` + "\n```";
+    // Formatting as per your request
+    const header = `💢============================💢\n     **WELCOME TO ${member.guild.name.toUpperCase()}** \n💢============================💢`;
+    const footer = `💢============================💢\n      **WELCOME BACK FAMILY** \n💢============================💢`;
 
     const embed = new EmbedBuilder()
-      .setColor("#D4AF37")
-      .setDescription(`${royalHeader}\n👑 **Hey <@${member.id}>! Welcome to the DARK EAGLE family.**\n${royalFooter}`)
-      .setImage("attachment://welcome.png");
+      .setColor("#FFD700") // Gold Color
+      .setDescription(`${header}\n\n👑 Hey <@${member.id}>! You have just joined the most elite family. Enjoy your stay!\n\n${footer}`)
+      .setImage("attachment://welcome-royal.png")
+      .setTimestamp();
 
-    await channel.send({ embeds: [embed], files: [attachment] });
-    console.log("Welcome message sent successfully!");
+    await channel.send({ 
+      content: `Welcome <@${member.id}> to **${member.guild.name}**!`, 
+      embeds: [embed], 
+      files: [attachment] 
+    });
   } catch (err) {
-    console.error("Send Message Error:", err);
+    console.error("Error creating welcome image:", err);
   }
 }
 
+// 👇 MEMBER JOIN EVENT
 client.on('guildMemberAdd', async member => {
   const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-  if (!channel) return console.log("Channel not found!");
+  if (!channel) return;
 
+  // Auto Role
   try {
     const role = member.guild.roles.cache.get(AUTO_ROLE_ID);
     if (role) await member.roles.add(role);
-  } catch (e) { console.log("Role error:", e.message); }
+  } catch (err) {
+    console.log("Role assignment error:", err.message);
+  }
 
   sendWelcome(member, channel);
 });
 
+// 👇 TEST COMMAND (!welcome)
 client.on('messageCreate', async message => {
-  // Isse check hoga ki bot message padh pa raha hai ya nahi
   if (message.content === '!welcome') {
-    console.log("Test command received!");
+    // Permission check (Optional)
+    if (!message.member.permissions.has('Administrator')) return;
     sendWelcome(message.member, message.channel);
   }
 });
 
 client.on('ready', () => {
   console.log(`✅ Royal Bot Online: ${client.user.tag}`);
-  console.log("Make sure 'Message Content Intent' is ON in Developer Portal!");
 });
 
-client.login(process.env.TOKEN).catch(err => console.error("Login Failed:", err));
+client.login(process.env.TOKEN);
