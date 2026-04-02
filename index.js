@@ -1,90 +1,68 @@
-const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder } = require('discord.js');
-const express = require('express');
 const { createCanvas, loadImage } = require('canvas');
 
-const app = express();
-app.get('/', (req, res) => res.send('Bot Running'));
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🌐 Server running on ${PORT}`));
-
-const client = new Client({
-  intents: [
-    GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
-  ]
-});
-
-client.on('ready', () => {
-  console.log(`✅ Bot Online: ${client.user.tag}`);
-});
-
-// 🔧 CONFIG
-const WELCOME_CHANNEL_ID = "1489323909860950219";
-const AUTO_ROLE_ID = "PUT_ROLE_ID_HERE"; // 👈 yahan role ID daalna
-
-// 🎨 Welcome Image Function
 async function createWelcomeImage(member) {
-  const canvas = createCanvas(800, 250);
+  const canvas = createCanvas(900, 300);
   const ctx = canvas.getContext('2d');
 
-  // background
-  ctx.fillStyle = '#0f172a';
+  // 🌌 Background (dark premium)
+  const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  gradient.addColorStop(0, "#0a0f1f");
+  gradient.addColorStop(1, "#111827");
+  ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // text
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '30px sans-serif';
-  ctx.fillText(`Welcome`, 250, 80);
+  // ✨ Glow effect
+  ctx.shadowColor = "#FFD700";
+  ctx.shadowBlur = 25;
 
-  ctx.font = '25px sans-serif';
-  ctx.fillText(member.user.username, 250, 130);
+  // 🟡 TOP TEXT → WELCOME TO SERVER NAME
+  ctx.fillStyle = "#FFD700";
+  ctx.font = "bold 30px Sans";
+  ctx.fillText(`WELCOME TO ${member.guild.name.toUpperCase()}`, 220, 50);
 
-  // avatar
+  // 🔥 BIG WELCOME TEXT (fake animation glow)
+  ctx.shadowColor = "#00ffff";
+  ctx.shadowBlur = 35;
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "bold 60px Sans";
+  ctx.fillText("WELCOME", 300, 140);
+
+  // 👤 USERNAME (ROYAL BLUE)
+  ctx.shadowBlur = 10;
+  ctx.fillStyle = "#3b82f6"; // royal blue
+  ctx.font = "bold 32px Sans";
+  ctx.fillText(member.user.username, 320, 190);
+
+  // 👑 BOTTOM TEXT
+  ctx.fillStyle = "#FFD700";
+  ctx.font = "bold 28px Sans";
+  ctx.fillText("WELCOME BACK FAMILY", 260, 250);
+
+  // 🖼️ Avatar load
   const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png' }));
-  ctx.drawImage(avatar, 50, 50, 150, 150);
+
+  // 🔵 Animated style border (glow ring)
+  const x = 60;
+  const y = 75;
+  const size = 150;
+
+  ctx.beginPath();
+  ctx.arc(x + size/2, y + size/2, size/2 + 8, 0, Math.PI * 2);
+  ctx.strokeStyle = "#00ffff";
+  ctx.lineWidth = 6;
+  ctx.shadowColor = "#00ffff";
+  ctx.shadowBlur = 20;
+  ctx.stroke();
+
+  // Avatar circle
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI * 2);
+  ctx.closePath();
+  ctx.clip();
+
+  ctx.drawImage(avatar, x, y, size, size);
+  ctx.restore();
 
   return canvas.toBuffer();
 }
-
-// 🎯 Welcome Send Function
-async function sendWelcome(member, channel) {
-  const buffer = await createWelcomeImage(member);
-  const attachment = new AttachmentBuilder(buffer, { name: 'welcome.png' });
-
-  const embed = new EmbedBuilder()
-    .setColor("#00ffcc")
-    .setTitle("✨ Welcome to DARK EAGLE 🦅 ✨")
-    .setDescription(`👋 Hey <@${member.id}> welcome!`)
-    .setImage("attachment://welcome.png")
-    .setFooter({ text: `Member #${member.guild.memberCount}` });
-
-  channel.send({ embeds: [embed], files: [attachment] });
-}
-
-// 👇 MEMBER JOIN EVENT
-client.on('guildMemberAdd', async member => {
-  const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-  if (!channel) return;
-
-  // Auto Role
-  try {
-    const role = member.guild.roles.cache.get(AUTO_ROLE_ID);
-    if (role) await member.roles.add(role);
-  } catch (err) {
-    console.log("Role error:", err);
-  }
-
-  sendWelcome(member, channel);
-});
-
-// 👇 TEST COMMAND
-client.on('messageCreate', message => {
-  if (message.content === '!welcome') {
-    sendWelcome(message.member, message.channel);
-  }
-});
-
-client.login(process.env.TOKEN);
