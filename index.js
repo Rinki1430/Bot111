@@ -1,97 +1,64 @@
-const { 
-  Client, 
-  GatewayIntentBits, 
-  EmbedBuilder, 
-  ActionRowBuilder, 
-  ButtonBuilder, 
-  ButtonStyle 
-} = require('discord.js');
-
-const express = require('express');
-
-const app = express();
-app.get('/', (req, res) => {
-  res.send('Bot is running!');
-});
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🌐 Web server running on port ${PORT}`);
-});
+const { Client, GatewayIntentBits, AttachmentBuilder } = require('discord.js');
+const Canvas = require('canvas');
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
-    GatewayIntentBits.GuildMembers,
-    GatewayIntentBits.GuildMessages,
-    GatewayIntentBits.MessageContent
+    GatewayIntentBits.GuildMembers
   ]
-});
-
-client.on('ready', () => {
-  console.log(`✅ Bot Online: ${client.user.tag}`);
 });
 
 const WELCOME_CHANNEL_ID = "1489323909860950219";
 
-async function sendWelcome(member, channel) {
-
-  // 👇 Typing animation feel
-  channel.sendTyping();
-
-  const embed = new EmbedBuilder()
-    .setColor("#2b2d31")
-    .setTitle("👑 𝗪𝗘𝗟𝗖𝗢𝗠𝗘 𝗧𝗢 𝗗𝗔𝗥𝗞 𝗘𝗔𝗚𝗟𝗘 🦅")
-    .setDescription(
-`✨ **Hello <@${member.id}>!**
-
-💠 Welcome to **${member.guild.name}**
-
-🔥 You are now part of something **LEGENDARY**
-
-📜 Read rules & enjoy your stay!
-
-━━━━━━━━━━━━━━━━━━━━━━
-💎 Stay Active | Respect All | Have Fun
-━━━━━━━━━━━━━━━━━━━━━━`
-    )
-    .setThumbnail(member.user.displayAvatarURL({ dynamic: true, size: 512 }))
-    .setImage("https://i.imgur.com/AfFp7pu.png") // banner (change kar sakte ho)
-    .setFooter({ text: `👥 Member #${member.guild.memberCount}` })
-    .setTimestamp();
-
-  // 👇 Buttons (Premium look)
-  const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setLabel("📜 Rules")
-      .setStyle(ButtonStyle.Link)
-      .setURL("https://discord.com"), // apna link daalo
-
-    new ButtonBuilder()
-      .setLabel("🌐 Invite Friends")
-      .setStyle(ButtonStyle.Link)
-      .setURL("https://discord.com")
-  );
-
-  channel.send({
-    content: "🎉 **New Member Joined!**",
-    embeds: [embed],
-    components: [row]
-  });
-}
-
-// 👇 Join Event
-client.on('guildMemberAdd', member => {
-  const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
-  if (!channel) return;
-  sendWelcome(member, channel);
+client.on('ready', () => {
+  console.log(`✅ Bot Ready: ${client.user.tag}`);
 });
 
-// 👇 Test Command
-client.on('messageCreate', message => {
-  if (message.content === '!welcome') {
-    sendWelcome(message.member, message.channel);
-  }
+client.on('guildMemberAdd', async (member) => {
+
+  const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
+  if (!channel) return;
+
+  // 🎨 Canvas setup
+  const canvas = Canvas.createCanvas(1024, 500);
+  const ctx = canvas.getContext('2d');
+
+  // 🖼️ Background load (golden)
+  const background = await Canvas.loadImage('https://i.imgur.com/6Iej2c3.png'); // change if needed
+  ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
+
+  // 👤 Avatar load
+  const avatar = await Canvas.loadImage(
+    member.user.displayAvatarURL({ extension: 'png', size: 256 })
+  );
+
+  // 👑 Avatar box (left side)
+  ctx.drawImage(avatar, 50, 150, 200, 200);
+
+  // ✨ Text Style
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 50px Sans';
+  ctx.fillText('WELCOME', 300, 200);
+
+  ctx.fillStyle = '#ff00cc';
+  ctx.font = 'bold 40px Sans';
+  ctx.fillText(member.user.username, 300, 260);
+
+  ctx.fillStyle = '#00ffcc';
+  ctx.font = 'bold 30px Sans';
+  ctx.fillText(`TO ${member.guild.name}`, 300, 320);
+
+  // 📦 Convert to attachment
+  const attachment = new AttachmentBuilder(canvas.toBuffer(), {
+    name: 'welcome.png'
+  });
+
+  // 🚀 Send
+  channel.send({
+    content: `👑 Welcome <@${member.id}>`,
+    files: [attachment]
+  });
+
 });
 
 client.login(process.env.TOKEN);
