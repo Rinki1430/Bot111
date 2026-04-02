@@ -1,13 +1,17 @@
 {
   "name": "welcome-bot",
   "version": "1.0.0",
-  "description": "Discord Welcome Bot",
+  "description": "Discord Premium Welcome Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
     "discord.js": "^14.14.1",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "canvas": "^2.11.2"
   }
 }
