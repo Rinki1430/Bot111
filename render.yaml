@@ -1,9 +1,0 @@
-services:
-  - type: web
-    name: welcome-bot
-    env: node
-    buildCommand: |
-      npm install
-      apt-get update
-      apt-get install -y libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev build-essential g++
-    startCommand: node index.js
