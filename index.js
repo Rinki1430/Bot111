@@ -65,7 +65,7 @@ async function createWelcomeImage(member) {
   const blueGoldGradient = ctx.createLinearGradient(0, 300, 0, 350);
   blueGoldGradient.addColorStop(0, '#1E90FF'); // Dodger Blue
   blueGoldGradient.addColorStop(0.5, '#FFD700'); // Shiny Gold
-  blueGoldGradient.addColorStop(1, '#1E90FF'); // Dodger Blue
+  blueGoldGradient.addColorStop(1, '#FFD700'); // Dodger Blue
 
   // "WELCOME" Text
   ctx.font = 'bold 70px sans-serif';
@@ -73,7 +73,7 @@ async function createWelcomeImage(member) {
   ctx.fillText("WELCOME", 512, 340);
 
   // Username Text (Size reduced to 65px and slightly adjusted downwards for balance)
-  ctx.font = 'bold 65px sans-serif'; 
+  ctx.font = 'bold 45px sans-serif'; 
   ctx.fillStyle = '#ffffff';
   ctx.lineWidth = 2;
   ctx.strokeStyle = '#000000';
