@@ -21,7 +21,7 @@ const WELCOME_CHANNEL_ID = "1489323909860950219";
 const GOODBYE_CHANNEL_ID = "1489686354420830248"; 
 const AUTO_ROLE_ID = "YOUR_ROLE_ID_HERE"; 
 const TRANSLATOR_CHANNEL_ID = "YOUR_CHAT_CHANNEL_ID"; // 👇 Yahan us channel ka ID dalein jisme translation karni hai
-const BANNER_URL = "https://cdn.discordapp.com/attachments/1489323909860950219/1489340921496473762/golden-radial-sunburst-background-animation-warm-abstract-sunshine-burst-motion-graphic-free-video.jpg?ex=69d01052&is=69cebed2&hm=0f9b49211ae735968fb000ee559b035a13515703b98159a97b1a82812ff1a484&";
+const BANNER_URL = "https://i.ibb.co/4Z6fPdT2/777777.jpg";
 
 // 🌍 USER TRANSLATION DATABASE (Memory mein save hoga)
 const userLanguages = new Map(); // Format: userId -> langCode
