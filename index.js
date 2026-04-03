@@ -1,6 +1,7 @@
 const { Client, GatewayIntentBits, EmbedBuilder, AttachmentBuilder } = require('discord.js');
 const express = require('express');
 const { createCanvas, loadImage } = require('canvas');
+const translate = require('@iamtraction/google-translate'); // 👈 Naya Free Translator API
 
 const app = express();
 app.get('/', (req, res) => res.send('Bot is Running 🦅'));
@@ -17,9 +18,13 @@ const client = new Client({
 
 // 🔧 CONFIGURATION
 const WELCOME_CHANNEL_ID = "1489323909860950219";
-const GOODBYE_CHANNEL_ID = "1489686354420830248"; // 👇 Naya Goodbye Channel ID
-const AUTO_ROLE_ID = "YOUR_ROLE_ID_HERE"; // Yahan Role ID daalein
+const GOODBYE_CHANNEL_ID = "1489686354420830248"; 
+const AUTO_ROLE_ID = "YOUR_ROLE_ID_HERE"; 
+const TRANSLATOR_CHANNEL_ID = "YOUR_CHAT_CHANNEL_ID"; // 👇 Yahan us channel ka ID dalein jisme translation karni hai
 const BANNER_URL = "https://cdn.discordapp.com/attachments/1489323909860950219/1489340921496473762/golden-radial-sunburst-background-animation-warm-abstract-sunshine-burst-motion-graphic-free-video.jpg?ex=69d01052&is=69cebed2&hm=0f9b49211ae735968fb000ee559b035a13515703b98159a97b1a82812ff1a484&";
+
+// 🌍 USER TRANSLATION DATABASE (Memory mein save hoga)
+const userLanguages = new Map(); // Format: userId -> langCode
 
 // ==========================================
 // 🎨 1. ADVANCED ROYAL CANVAS FOR WELCOME
@@ -81,27 +86,24 @@ async function createWelcomeImage(member) {
 }
 
 // ==========================================
-// 🎨 2. ADVANCED ROYAL CANVAS FOR GOODBYE (NEW)
+// 🎨 2. ADVANCED ROYAL CANVAS FOR GOODBYE
 // ==========================================
 async function createGoodbyeImage(member) {
   const canvas = createCanvas(1024, 500);
   const ctx = canvas.getContext('2d');
 
-  // Same Background
   const background = await loadImage(BANNER_URL);
   ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-  // Vignette (Darker for Goodbye mood)
   const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
   vignette.addColorStop(0, 'rgba(0,0,0,0.2)');
   vignette.addColorStop(1, 'rgba(0,0,0,0.7)');
   ctx.fillStyle = vignette;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // Avatar with Red/Silver Glow
   const avatar = await loadImage(member.user.displayAvatarURL({ extension: 'png', size: 512 }));
   
-  ctx.shadowColor = '#FF4500'; // Reddish Orange Glow
+  ctx.shadowColor = '#FF4500'; 
   ctx.shadowBlur = 20;
   
   ctx.save();
@@ -109,7 +111,7 @@ async function createGoodbyeImage(member) {
   ctx.arc(512, 160, 100, 0, Math.PI * 2, true); 
   ctx.closePath();
   ctx.lineWidth = 10;
-  ctx.strokeStyle = '#C0C0C0'; // Silver Border for Goodbye
+  ctx.strokeStyle = '#C0C0C0'; 
   ctx.stroke();
   ctx.clip();
   ctx.drawImage(avatar, 412, 60, 200, 200);
@@ -119,7 +121,6 @@ async function createGoodbyeImage(member) {
   ctx.shadowColor = 'rgba(0,0,0,0.5)';
   ctx.textAlign = "center";
 
-  // Red & Silver Gradient for "GOODBYE"
   const redSilverGradient = ctx.createLinearGradient(0, 300, 0, 350);
   redSilverGradient.addColorStop(0, '#FF4500'); 
   redSilverGradient.addColorStop(0.5, '#C0C0C0'); 
@@ -136,7 +137,6 @@ async function createGoodbyeImage(member) {
   ctx.strokeText(member.user.username.toUpperCase(), 512, 430);
   ctx.fillText(member.user.username.toUpperCase(), 512, 430);
 
-  // Silver Frame for Goodbye
   ctx.strokeStyle = '#C0C0C0';
   ctx.lineWidth = 15;
   ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
@@ -144,9 +144,6 @@ async function createGoodbyeImage(member) {
   return canvas.toBuffer();
 }
 
-// ==========================================
-// 🎯 3. SEND WELCOME FUNCTION
-// ==========================================
 async function sendWelcome(member, channel) {
   try {
     const buffer = await createWelcomeImage(member);
@@ -161,19 +158,10 @@ async function sendWelcome(member, channel) {
       .setImage("attachment://welcome-royal.png")
       .setTimestamp();
 
-    await channel.send({ 
-      content: `Hello <@${member.id}> **${member.guild.name}**!`, 
-      embeds: [embed], 
-      files: [attachment] 
-    });
-  } catch (err) {
-    console.error("Error creating welcome image:", err);
-  }
+    await channel.send({ content: `Hello <@${member.id}>!`, embeds: [embed], files: [attachment] });
+  } catch (err) { console.error(err); }
 }
 
-// ==========================================
-// 🎯 4. SEND GOODBYE FUNCTION (NEW)
-// ==========================================
 async function sendGoodbye(member, channel) {
   try {
     const buffer = await createGoodbyeImage(member);
@@ -183,64 +171,116 @@ async function sendGoodbye(member, channel) {
     const footer = `💢========================💢\n      **WE WILL MISS YOU** \n💢========================💢`;
 
     const embed = new EmbedBuilder()
-      .setColor("#FF0000") // Red Color for Goodbye
-      .setDescription(`${header}\n\n🥀 <@${member.id}> (**${member.user.username}**) has left the server. We hope to see you again soon!\n\n${footer}`)
+      .setColor("#FF0000") 
+      .setDescription(`${header}\n\n🥀 <@${member.id}> (**${member.user.username}**) has left the server.\n\n${footer}`)
       .setImage("attachment://goodbye-royal.png")
       .setTimestamp();
 
-    await channel.send({ 
-      content: `Goodbye **${member.user.username}**!`, 
-      embeds: [embed], 
-      files: [attachment] 
-    });
-  } catch (err) {
-    console.error("Error creating goodbye image:", err);
-  }
+    await channel.send({ content: `Goodbye **${member.user.username}**!`, embeds: [embed], files: [attachment] });
+  } catch (err) { console.error(err); }
 }
 
 // ==========================================
-// 👇 EVENTS
+// 👇 EVENTS & COMMANDS
 // ==========================================
 
-// Member Join Event (Welcome)
 client.on('guildMemberAdd', async member => {
   const channel = member.guild.channels.cache.get(WELCOME_CHANNEL_ID);
   if (!channel) return;
-
   try {
     const role = member.guild.roles.cache.get(AUTO_ROLE_ID);
     if (role) await member.roles.add(role);
-  } catch (err) {
-    console.log("Role assignment error:", err.message);
-  }
-
+  } catch (err) { console.log(err.message); }
   sendWelcome(member, channel);
 });
 
-// Member Leave Event (Goodbye) - NEW 👇
 client.on('guildMemberRemove', async member => {
   const channel = member.guild.channels.cache.get(GOODBYE_CHANNEL_ID);
   if (!channel) return;
-
   sendGoodbye(member, channel);
 });
 
-// Test Commands (!welcome & !goodbye)
 client.on('messageCreate', async message => {
+  if (message.author.bot) return;
+
+  // Test Commands
   if (message.content === '!welcome') {
     if (!message.member.permissions.has('Administrator')) return;
     sendWelcome(message.member, message.channel);
   }
-  
-  // Goodbye test command 👇
   if (message.content === '!goodbye') {
     if (!message.member.permissions.has('Administrator')) return;
     sendGoodbye(message.member, message.channel);
   }
+
+  // ==========================================
+  // 🌐 TRANSLATOR COMMAND: !setlang <lang_code>
+  // ==========================================
+  if (message.content.startsWith('!setlang')) {
+    const args = message.content.split(' ');
+    const langCode = args[1];
+
+    if (!langCode) {
+      return message.reply("❌ Please provide a language code!\n*Example:* `!setlang hi` (Hindi), `!setlang es` (Spanish), `!setlang fr` (French)");
+    }
+
+    userLanguages.set(message.author.id, langCode.toLowerCase());
+    return message.reply(`✅ Aapki custom language ab **${langCode.toUpperCase()}** set ho gayi hai!`);
+  }
+
+  // ==========================================
+  // 🤖 AUTO TRANSLATOR LOGIC
+  // ==========================================
+  if (!message.content.startsWith('!') && message.content.length > 0) {
+    // Agar specific channel mein chalana hai to isko uncomment karein:
+    // if (message.channel.id !== TRANSLATOR_CHANNEL_ID) return;
+
+    try {
+      // 1. Pehle message ko Default English mein translate karein
+      let engTrans = await translate(message.content, { to: 'en' });
+      let detectedLang = engTrans.from.language.iso; // Original message ki language
+
+      // Konsi languages mein translate karna hai? (Default English)
+      let targetLangs = new Set(['en']); 
+      
+      // Agar server mein kisi ne apni custom language set ki hai, usko bhi add karo
+      userLanguages.forEach(lang => targetLangs.add(lang));
+
+      // Original message ki language ko hata do (taki Hindi se Hindi translate na ho)
+      targetLangs.delete(detectedLang);
+
+      // Agar convert karne ke liye kuch nahi bacha to return
+      if (targetLangs.size === 0) return; 
+
+      // 2. Translation ka Embed banayein
+      let desc = "";
+
+      for (let lang of targetLangs) {
+        if (lang === 'en') {
+          desc += `**🇬🇧 English:** ${engTrans.text}\n\n`;
+        } else {
+          // Custom language users ke liye extra translation
+          let customTrans = await translate(message.content, { to: lang });
+          desc += `**🌐 ${lang.toUpperCase()}:** ${customTrans.text}\n\n`;
+        }
+      }
+
+      const embed = new EmbedBuilder()
+        .setColor("#00FFFF")
+        .setAuthor({ name: `Translation for ${message.author.username}`, iconURL: message.author.displayAvatarURL() })
+        .setDescription(desc);
+
+      // Reply the translated message
+      await message.reply({ embeds: [embed], allowedMentions: { repliedUser: false } });
+
+    } catch (err) {
+      console.log("Translation Error: ", err.message);
+    }
+  }
 });
 
 client.on('ready', () => {
-  console.log(`✅ Royal Bot Online: ${client.user.tag}`);
+  console.log(`✅ Royal Bot & Translator Online: ${client.user.tag}`);
 });
 
 client.login(process.env.TOKEN);
