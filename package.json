@@ -1,17 +1,19 @@
 {
-  "name": "dark-eagle-welcome-bot",
+  "name": "dark-eagle-pro-bot",
   "version": "1.0.0",
-  "description": "Ultra Premium Discord Welcome Bot",
+  "description": "Leveling, Translator, Welcome Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
-  "author": "MR",
-  "license": "ISC",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
+    "@iamtraction/google-translate": "^2.0.1",
+    "@napi-rs/canvas": "^0.1.50",
     "discord.js": "^14.14.1",
     "express": "^4.18.2",
-    "canvas": "^2.11.2",
-    "@iamtraction/google-translate": "^2.0.1"
+    "firebase-admin": "^12.0.0"
   }
 }
