@@ -1,7 +1,7 @@
 {
-  "name": "dark-eagle-pro-bot",
+  "name": "ultimate-discord-bot",
   "version": "1.0.0",
-  "description": "Leveling, Translator, Welcome Bot",
+  "description": "Leveling, Welcome, and Translator Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
