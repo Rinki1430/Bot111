@@ -11,7 +11,9 @@ const BACKGROUND_TEMPLATES = {
 
 const BANNER_URL = "https://i.ibb.co/4Z6fPdT2/777777.jpg";
 
-// --- RANK CARD GENERATOR ---
+// ==========================================
+// 1. RANK CARD GENERATOR
+// ==========================================
 async function generateRankCard(user, rankName, level) {
     const canvas = createCanvas(1000, 250);
     const ctx = canvas.getContext('2d');
@@ -34,9 +36,7 @@ async function generateRankCard(user, rankName, level) {
     ctx.strokeStyle = bannerGradient;
     ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
 
-    const avatarSize = 140; 
-    const avatarX = 80;     
-    const avatarY = 55;     
+    const avatarSize = 140, avatarX = 80, avatarY = 55;     
     
     ctx.save();
     ctx.beginPath();
@@ -62,7 +62,6 @@ async function generateRankCard(user, rankName, level) {
     ctx.font = 'bold 24px sans-serif';
     ctx.fillStyle = '#ffffff'; 
     ctx.textAlign = 'center';
-    
     const textX = avatarX + (avatarSize / 2);
     const textY = avatarY + avatarSize + 30; 
     
@@ -74,130 +73,124 @@ async function generateRankCard(user, rankName, level) {
     return canvas.toBuffer('image/png');
 }
 
-// --- WELCOME CARD GENERATOR ---
+// ==========================================
+// 2. WELCOME CARD GENERATOR
+// ==========================================
 async function createWelcomeImage(member) {
-  const canvas = createCanvas(1024, 500);
-  const ctx = canvas.getContext('2d');
+    const canvas = createCanvas(1024, 500);
+    const ctx = canvas.getContext('2d');
 
-  try {
-      const background = await loadImage(BANNER_URL);
-      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  } catch(e) {
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0,0, canvas.width, canvas.height);
-  }
+    const background = await loadImage(BANNER_URL);
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-  const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
-  vignette.addColorStop(0, 'rgba(0,0,0,0)');
-  vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
+    vignette.addColorStop(0, 'rgba(0,0,0,0)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 512 });
-  const avatar = await loadImage(avatarUrl);
-  
-  ctx.shadowColor = '#FFD700';
-  ctx.shadowBlur = 20;
-  
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(512, 160, 100, 0, Math.PI * 2, true); 
-  ctx.closePath();
-  ctx.lineWidth = 10;
-  ctx.strokeStyle = '#D4AF37'; 
-  ctx.stroke();
-  ctx.clip();
-  ctx.drawImage(avatar, 412, 60, 200, 200);
-  ctx.restore();
+    const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 512 });
+    const avatar = await loadImage(avatarUrl);
 
-  ctx.shadowBlur = 5;
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.textAlign = "center";
+    ctx.shadowColor = '#FFD700';
+    ctx.shadowBlur = 20;
 
-  const blueGoldGradient = ctx.createLinearGradient(0, 300, 0, 350);
-  blueGoldGradient.addColorStop(0, '#1E90FF'); 
-  blueGoldGradient.addColorStop(0.5, '#FFD700'); 
-  blueGoldGradient.addColorStop(1, '#FFD700'); 
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(512, 160, 100, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#D4AF37';
+    ctx.stroke();
+    ctx.clip();
+    ctx.drawImage(avatar, 412, 60, 200, 200);
+    ctx.restore();
 
-  ctx.font = 'bold 70px sans-serif';
-  ctx.fillStyle = blueGoldGradient;
-  ctx.fillText("WELCOME", 512, 340);
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.textAlign = "center";
 
-  ctx.font = 'bold 45px sans-serif'; 
-  ctx.fillStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#000000';
-  ctx.strokeText(member.user.username.toUpperCase(), 512, 430);
-  ctx.fillText(member.user.username.toUpperCase(), 512, 430);
+    const blueGoldGradient = ctx.createLinearGradient(0, 300, 0, 350);
+    blueGoldGradient.addColorStop(0, '#1E90FF');
+    blueGoldGradient.addColorStop(0.5, '#FFD700');
+    blueGoldGradient.addColorStop(1, '#FFD700');
 
-  ctx.strokeStyle = '#D4AF37';
-  ctx.lineWidth = 15;
-  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    ctx.font = 'bold 70px sans-serif';
+    ctx.fillStyle = blueGoldGradient;
+    ctx.fillText("WELCOME", 512, 340);
 
-  return canvas.toBuffer('image/png');
+    ctx.font = 'bold 45px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000000';
+    ctx.strokeText(member.user.username.toUpperCase(), 512, 430);
+    ctx.fillText(member.user.username.toUpperCase(), 512, 430);
+
+    ctx.strokeStyle = '#D4AF37';
+    ctx.lineWidth = 15;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+    return canvas.toBuffer('image/png');
 }
 
-// --- GOODBYE CARD GENERATOR ---
+// ==========================================
+// 3. GOODBYE CARD GENERATOR
+// ==========================================
 async function createGoodbyeImage(member) {
-  const canvas = createCanvas(1024, 500);
-  const ctx = canvas.getContext('2d');
+    const canvas = createCanvas(1024, 500);
+    const ctx = canvas.getContext('2d');
 
-  try {
-      const background = await loadImage(BANNER_URL);
-      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-  } catch(e) {
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0,0, canvas.width, canvas.height);
-  }
+    const background = await loadImage(BANNER_URL);
+    ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
 
-  const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
-  vignette.addColorStop(0, 'rgba(0,0,0,0.2)');
-  vignette.addColorStop(1, 'rgba(0,0,0,0.7)');
-  ctx.fillStyle = vignette;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const vignette = ctx.createRadialGradient(512, 250, 100, 512, 250, 600);
+    vignette.addColorStop(0, 'rgba(0,0,0,0.2)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.7)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 512 });
-  const avatar = await loadImage(avatarUrl);
-  
-  ctx.shadowColor = '#FF4500'; 
-  ctx.shadowBlur = 20;
-  
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(512, 160, 100, 0, Math.PI * 2, true); 
-  ctx.closePath();
-  ctx.lineWidth = 10;
-  ctx.strokeStyle = '#C0C0C0'; 
-  ctx.stroke();
-  ctx.clip();
-  ctx.drawImage(avatar, 412, 60, 200, 200);
-  ctx.restore();
+    const avatarUrl = member.user.displayAvatarURL({ extension: 'png', size: 512 });
+    const avatar = await loadImage(avatarUrl);
 
-  ctx.shadowBlur = 5;
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.textAlign = "center";
+    ctx.shadowColor = '#FF4500';
+    ctx.shadowBlur = 20;
 
-  const redSilverGradient = ctx.createLinearGradient(0, 300, 0, 350);
-  redSilverGradient.addColorStop(0, '#FF4500'); 
-  redSilverGradient.addColorStop(0.5, '#C0C0C0'); 
-  redSilverGradient.addColorStop(1, '#FF4500'); 
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(512, 160, 100, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#C0C0C0';
+    ctx.stroke();
+    ctx.clip();
+    ctx.drawImage(avatar, 412, 60, 200, 200);
+    ctx.restore();
 
-  ctx.font = 'bold 70px sans-serif';
-  ctx.fillStyle = redSilverGradient;
-  ctx.fillText("GOODBYE", 512, 340);
+    ctx.shadowBlur = 5;
+    ctx.shadowColor = 'rgba(0,0,0,0.5)';
+    ctx.textAlign = "center";
 
-  ctx.font = 'bold 45px sans-serif'; 
-  ctx.fillStyle = '#ffffff';
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#000000';
-  ctx.strokeText(member.user.username.toUpperCase(), 512, 430);
-  ctx.fillText(member.user.username.toUpperCase(), 512, 430);
+    const redSilverGradient = ctx.createLinearGradient(0, 300, 0, 350);
+    redSilverGradient.addColorStop(0, '#FF4500');
+    redSilverGradient.addColorStop(0.5, '#C0C0C0');
+    redSilverGradient.addColorStop(1, '#FF4500');
 
-  ctx.strokeStyle = '#C0C0C0';
-  ctx.lineWidth = 15;
-  ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+    ctx.font = 'bold 70px sans-serif';
+    ctx.fillStyle = redSilverGradient;
+    ctx.fillText("GOODBYE", 512, 340);
 
-  return canvas.toBuffer('image/png');
+    ctx.font = 'bold 45px sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000000';
+    ctx.strokeText(member.user.username.toUpperCase(), 512, 430);
+    ctx.fillText(member.user.username.toUpperCase(), 512, 430);
+
+    ctx.strokeStyle = '#C0C0C0';
+    ctx.lineWidth = 15;
+    ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+    return canvas.toBuffer('image/png');
 }
 
 module.exports = { generateRankCard, createWelcomeImage, createGoodbyeImage };
